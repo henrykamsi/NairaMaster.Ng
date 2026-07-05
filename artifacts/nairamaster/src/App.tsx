@@ -9,10 +9,18 @@ import { Home } from '@/pages/home';
 import { Tasks } from '@/pages/tasks';
 import { Settings } from '@/pages/settings';
 import { AdminDashboard } from '@/pages/admin';
+import { Submissions } from '@/pages/submissions';
+import { WithdrawalLogs } from '@/pages/withdrawal-logs';
+import { Updates } from '@/pages/updates';
+import { Docs } from '@/pages/docs';
 import { AuthProvider } from '@/hooks/use-auth';
 import { ThemeProvider } from "next-themes";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { retry: 1, staleTime: 30_000 },
+  },
+});
 
 function Router() {
   return (
@@ -20,6 +28,10 @@ function Router() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/tasks" component={Tasks} />
+        <Route path="/submissions" component={Submissions} />
+        <Route path="/withdrawal-logs" component={WithdrawalLogs} />
+        <Route path="/updates" component={Updates} />
+        <Route path="/docs" component={Docs} />
         <Route path="/settings" component={Settings} />
         <Route path="/admin" component={AdminDashboard} />
         <Route path="/login" component={Login} />
