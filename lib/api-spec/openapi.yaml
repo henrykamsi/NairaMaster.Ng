@@ -1,22 +1,33 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: NairaMaster.ng Micro Task Platform API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
-    description: Health operations
+  - name: auth
+  - name: wallet
+  - name: tasks
+  - name: submissions
+  - name: withdrawals
+  - name: scoring
+  - name: daily-dues
+  - name: documentation
+  - name: updates
+  - name: banners
+  - name: notifications
+  - name: admin
+  - name: settings
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +35,1051 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # --- AUTH ---
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: Registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+
+  /auth/me/delete:
+    post:
+      operationId: deleteMyAccount
+      tags: [auth]
+      summary: Delete own account permanently
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteAccountInput"
+      responses:
+        "200":
+          description: Account deleted
+
+  # --- WALLET ---
+  /wallet:
+    get:
+      operationId: getWallet
+      tags: [wallet]
+      summary: Get current user wallet
+      responses:
+        "200":
+          description: Wallet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Wallet"
+
+  /wallet/refresh:
+    post:
+      operationId: refreshWallet
+      tags: [wallet]
+      summary: Refresh wallet balance
+      responses:
+        "200":
+          description: Wallet refreshed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Wallet"
+
+  /wallet/transactions:
+    get:
+      operationId: getTransactions
+      tags: [wallet]
+      summary: Get wallet transactions
+      responses:
+        "200":
+          description: Transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+
+  # --- TASKS ---
+  /tasks:
+    get:
+      operationId: getTasks
+      tags: [tasks]
+      summary: List all active tasks
+      responses:
+        "200":
+          description: Task list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+    post:
+      operationId: createTask
+      tags: [tasks]
+      summary: Create a task (admin or user)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskInput"
+      responses:
+        "201":
+          description: Task created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+
+  /tasks/my:
+    get:
+      operationId: getMyTasks
+      tags: [tasks]
+      summary: Get tasks uploaded by the current user
+      responses:
+        "200":
+          description: My tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+
+  /tasks/{taskId}:
+    get:
+      operationId: getTask
+      tags: [tasks]
+      summary: Get a single task
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+    patch:
+      operationId: updateTask
+      tags: [tasks]
+      summary: Update a task (admin)
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskUpdate"
+      responses:
+        "200":
+          description: Updated task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+    delete:
+      operationId: deleteTask
+      tags: [tasks]
+      summary: Delete a task (admin)
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+
+  /tasks/{taskId}/renew:
+    post:
+      operationId: renewTask
+      tags: [tasks]
+      summary: Renew a task so all users can perform it again (admin)
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Task renewed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+
+  /tasks/{taskId}/extend:
+    post:
+      operationId: extendTask
+      tags: [tasks]
+      summary: Extend how many performers a task allows (admin)
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskExtendInput"
+      responses:
+        "200":
+          description: Task extended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+
+  /tasks/{taskId}/perform:
+    post:
+      operationId: performTask
+      tags: [tasks]
+      summary: Mark a task as being performed by the user
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Task marked as performed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Submission"
+
+  # --- SUBMISSIONS ---
+  /submissions:
+    get:
+      operationId: getSubmissions
+      tags: [submissions]
+      summary: Get current user's task submissions
+      responses:
+        "200":
+          description: Submissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmissionList"
+
+  /submissions/{submissionId}/screenshots:
+    post:
+      operationId: uploadScreenshots
+      tags: [submissions]
+      summary: Upload screenshots for a submission (max 2)
+      parameters:
+        - name: submissionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScreenshotUploadInput"
+      responses:
+        "200":
+          description: Screenshots uploaded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Submission"
+
+  /submissions/{submissionId}/send:
+    post:
+      operationId: sendSubmission
+      tags: [submissions]
+      summary: Send submission to admin for review
+      parameters:
+        - name: submissionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Submission sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Submission"
+
+  # --- WITHDRAWALS ---
+  /withdrawals:
+    get:
+      operationId: getWithdrawals
+      tags: [withdrawals]
+      summary: Get current user's withdrawals
+      responses:
+        "200":
+          description: Withdrawals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Withdrawal"
+    post:
+      operationId: requestWithdrawal
+      tags: [withdrawals]
+      summary: Request a withdrawal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WithdrawalInput"
+      responses:
+        "201":
+          description: Withdrawal requested
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Withdrawal"
+
+  # --- SCORING ---
+  /scoring/me:
+    get:
+      operationId: getMyScore
+      tags: [scoring]
+      summary: Get current user's score
+      responses:
+        "200":
+          description: Score
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Score"
+
+  # --- DAILY DUES ---
+  /daily-dues/me:
+    get:
+      operationId: getMyDailyDues
+      tags: [daily-dues]
+      summary: Get current user's daily dues history
+      responses:
+        "200":
+          description: Daily dues
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailyDuesSummary"
+
+  /daily-dues/me/debt:
+    get:
+      operationId: getMyDebt
+      tags: [daily-dues]
+      summary: Get current user's outstanding daily due debt
+      responses:
+        "200":
+          description: Debt summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DebtSummary"
+
+  # --- DOCUMENTATION ---
+  /docs:
+    get:
+      operationId: getDocs
+      tags: [documentation]
+      summary: Get all documentation
+      responses:
+        "200":
+          description: Documentation list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Doc"
+    post:
+      operationId: createDoc
+      tags: [documentation]
+      summary: Create documentation (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Doc"
+
+  /docs/{docId}:
+    patch:
+      operationId: updateDoc
+      tags: [documentation]
+      summary: Update documentation (admin)
+      parameters:
+        - name: docId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Doc"
+    delete:
+      operationId: deleteDoc
+      tags: [documentation]
+      summary: Delete documentation (admin)
+      parameters:
+        - name: docId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+
+  # --- UPDATES / ANNOUNCEMENTS ---
+  /updates:
+    get:
+      operationId: getUpdates
+      tags: [updates]
+      summary: Get all updates
+      responses:
+        "200":
+          description: Updates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Update"
+    post:
+      operationId: createUpdate
+      tags: [updates]
+      summary: Create an update (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Update"
+
+  /updates/{updateId}/comments:
+    post:
+      operationId: addUpdateComment
+      tags: [updates]
+      summary: Add a comment to an update
+      parameters:
+        - name: updateId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentInput"
+      responses:
+        "201":
+          description: Comment added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+
+  # --- BANNERS ---
+  /banners:
+    get:
+      operationId: getBanners
+      tags: [banners]
+      summary: Get active banners
+      responses:
+        "200":
+          description: Banners
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Banner"
+    post:
+      operationId: createBanner
+      tags: [banners]
+      summary: Create a banner (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BannerInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Banner"
+
+  /banners/{bannerId}:
+    delete:
+      operationId: deleteBanner
+      tags: [banners]
+      summary: Delete a banner (admin)
+      parameters:
+        - name: bannerId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+
+  # --- NOTIFICATIONS ---
+  /notifications:
+    get:
+      operationId: getNotifications
+      tags: [notifications]
+      summary: Get current user's notifications
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+  /notifications/{notificationId}/read:
+    post:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark a notification as read
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Marked read
+
+  # --- SETTINGS ---
+  /settings:
+    get:
+      operationId: getSettings
+      tags: [settings]
+      summary: Get platform settings
+      responses:
+        "200":
+          description: Settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settings"
+
+  /settings/update:
+    post:
+      operationId: updateSettings
+      tags: [settings]
+      summary: Update platform settings (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SettingsInput"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settings"
+
+  # --- ADMIN ROUTES ---
+  /admin/users:
+    get:
+      operationId: adminGetUsers
+      tags: [admin]
+      summary: Get all users (admin)
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [newest, oldest]
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Users list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserList"
+
+  /admin/users/{userId}:
+    get:
+      operationId: adminGetUser
+      tags: [admin]
+      summary: Get a single user (admin)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+
+  /admin/users/{userId}/block:
+    post:
+      operationId: adminBlockUser
+      tags: [admin]
+      summary: Block a user for specified weeks
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlockInput"
+      responses:
+        "200":
+          description: User blocked
+
+  /admin/users/{userId}/suspend:
+    post:
+      operationId: adminSuspendUser
+      tags: [admin]
+      summary: Suspend a user for specified days
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SuspendInput"
+      responses:
+        "200":
+          description: User suspended
+
+  /admin/users/{userId}/shadow-ban:
+    post:
+      operationId: adminShadowBanUser
+      tags: [admin]
+      summary: Shadow ban a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User shadow banned
+
+  /admin/users/{userId}/restrict:
+    post:
+      operationId: adminRestrictUser
+      tags: [admin]
+      summary: Restrict specific user actions
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RestrictInput"
+      responses:
+        "200":
+          description: User restricted
+
+  /admin/users/{userId}/lift:
+    post:
+      operationId: adminLiftRestriction
+      tags: [admin]
+      summary: Lift any block/suspend/shadow-ban/restrict
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Restriction lifted
+
+  /admin/users/{userId}/score:
+    post:
+      operationId: adminSetScore
+      tags: [admin]
+      summary: Set or update user score
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScoreInput"
+      responses:
+        "200":
+          description: Score updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Score"
+
+  /admin/users/{userId}/credit:
+    post:
+      operationId: adminCreditUser
+      tags: [admin]
+      summary: Credit user wallet (admin confirms deposit)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreditInput"
+      responses:
+        "200":
+          description: User credited
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Wallet"
+
+  /admin/withdrawals:
+    get:
+      operationId: adminGetWithdrawals
+      tags: [admin]
+      summary: Get all withdrawal requests (admin)
+      responses:
+        "200":
+          description: Withdrawals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminWithdrawal"
+
+  /admin/withdrawals/{withdrawalId}/approve:
+    post:
+      operationId: adminApproveWithdrawal
+      tags: [admin]
+      summary: Approve a withdrawal request
+      parameters:
+        - name: withdrawalId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WithdrawalActionInput"
+      responses:
+        "200":
+          description: Approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminWithdrawal"
+
+  /admin/withdrawals/{withdrawalId}/decline:
+    post:
+      operationId: adminDeclineWithdrawal
+      tags: [admin]
+      summary: Decline a withdrawal request
+      parameters:
+        - name: withdrawalId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WithdrawalActionInput"
+      responses:
+        "200":
+          description: Declined
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminWithdrawal"
+
+  /admin/submissions:
+    get:
+      operationId: adminGetSubmissions
+      tags: [admin]
+      summary: Get all task submissions (admin)
+      responses:
+        "200":
+          description: Submissions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminSubmission"
+
+  /admin/submissions/{submissionId}/approve:
+    post:
+      operationId: adminApproveSubmission
+      tags: [admin]
+      summary: Approve a task submission
+      parameters:
+        - name: submissionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Approved
+
+  /admin/submissions/{submissionId}/decline:
+    post:
+      operationId: adminDeclineSubmission
+      tags: [admin]
+      summary: Decline a task submission
+      parameters:
+        - name: submissionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeclineInput"
+      responses:
+        "200":
+          description: Declined
+
+  /admin/daily-dues:
+    get:
+      operationId: adminGetAllDailyDues
+      tags: [admin]
+      summary: Get all users' daily dues (admin)
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: All daily dues
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserDailyDues"
+
+  /admin/daily-dues/{userId}:
+    get:
+      operationId: adminGetUserDailyDues
+      tags: [admin]
+      summary: Get a user's daily dues log (admin)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User daily dues
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDailyDues"
+    patch:
+      operationId: adminMarkDailyDuesPaid
+      tags: [admin]
+      summary: Mark specific days as paid for a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DailyDuesMarkInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDailyDues"
+
+  /admin/stats:
+    get:
+      operationId: adminGetStats
+      tags: [admin]
+      summary: Get platform overview stats (admin)
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +1087,730 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    # --- Auth ---
+    RegisterInput:
+      type: object
+      required: [firstName, lastName, email, gender, password]
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        gender:
+          type: string
+          enum: [male, female, other]
+        password:
+          type: string
+          minLength: 6
+
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+
+    DeleteAccountInput:
+      type: object
+      required: [confirmed]
+      properties:
+        confirmed:
+          type: boolean
+
+    AuthResponse:
+      type: object
+      required: [user, token]
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        token:
+          type: string
+
+    User:
+      type: object
+      required: [id, firstName, lastName, email, gender, balance, score, status, createdAt]
+      properties:
+        id:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        gender:
+          type: string
+        balance:
+          type: number
+        score:
+          type: integer
+        status:
+          type: string
+          enum: [active, blocked, suspended, shadow_banned, restricted, disabled]
+        statusReason:
+          type: ["string", "null"]
+        statusUntil:
+          type: ["string", "null"]
+        isAdmin:
+          type: boolean
+        restrictions:
+          type: ["object", "null"]
+        dailyDuesPaid:
+          type: boolean
+        createdAt:
+          type: string
+        lastLoginAt:
+          type: ["string", "null"]
+
+    # --- Wallet ---
+    Wallet:
+      type: object
+      required: [balance, userId]
+      properties:
+        userId:
+          type: integer
+        balance:
+          type: number
+        lastUpdated:
+          type: string
+
+    Transaction:
+      type: object
+      required: [id, type, amount, description, createdAt]
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [credit, debit, fee, task_reward, withdrawal]
+        amount:
+          type: number
+        description:
+          type: string
+        createdAt:
+          type: string
+
+    # --- Tasks ---
+    Task:
+      type: object
+      required: [id, title, description, link, socialMedia, category, tags, maxPerformers, performerCount, status, uploadedByAdmin, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        link:
+          type: string
+        socialMedia:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        maxPerformers:
+          type: integer
+        performerCount:
+          type: integer
+        status:
+          type: string
+          enum: [active, expired, deleted]
+        uploadedByAdmin:
+          type: boolean
+        uploadedByUserId:
+          type: ["integer", "null"]
+        reward:
+          type: ["number", "null"]
+        performedByCurrentUser:
+          type: boolean
+        createdAt:
+          type: string
+
+    TaskInput:
+      type: object
+      required: [title, description, link, socialMedia, category, tags]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        link:
+          type: string
+        socialMedia:
+          type: string
+          enum: [facebook, whatsapp, tiktok, instagram, linkedin, pinterest, x, google, youtube, others]
+        category:
+          type: string
+          enum: [like, follow, comment, share, visit, signup, login, survey, optional, others]
+        tags:
+          type: array
+          items:
+            type: string
+        maxPerformers:
+          type: integer
+        reward:
+          type: number
+
+    TaskUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        link:
+          type: string
+        socialMedia:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        maxPerformers:
+          type: integer
+        reward:
+          type: number
+        status:
+          type: string
+
+    TaskExtendInput:
+      type: object
+      required: [additionalPerformers]
+      properties:
+        additionalPerformers:
+          type: integer
+
+    # --- Submissions ---
+    Submission:
+      type: object
+      required: [id, taskId, userId, status, createdAt]
+      properties:
+        id:
+          type: integer
+        taskId:
+          type: integer
+        userId:
+          type: integer
+        status:
+          type: string
+          enum: [pending, approved, declined]
+        screenshots:
+          type: array
+          items:
+            type: string
+        declineReason:
+          type: ["string", "null"]
+        task:
+          $ref: "#/components/schemas/Task"
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    SubmissionList:
+      type: object
+      required: [pending, approved, declined]
+      properties:
+        pending:
+          type: array
+          items:
+            $ref: "#/components/schemas/Submission"
+        approved:
+          type: array
+          items:
+            $ref: "#/components/schemas/Submission"
+        declined:
+          type: array
+          items:
+            $ref: "#/components/schemas/Submission"
+
+    ScreenshotUploadInput:
+      type: object
+      required: [screenshots]
+      properties:
+        screenshots:
+          type: array
+          items:
+            type: string
+          maxItems: 2
+
+    # --- Withdrawals ---
+    Withdrawal:
+      type: object
+      required: [id, userId, amount, bankName, accountNumber, accountName, status, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        amount:
+          type: number
+        bankName:
+          type: string
+        accountNumber:
+          type: string
+        accountName:
+          type: string
+        status:
+          type: string
+          enum: [pending, under_review, approved, declined]
+        note:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    WithdrawalInput:
+      type: object
+      required: [amount, bankName, accountNumber, accountName]
+      properties:
+        amount:
+          type: number
+        bankName:
+          type: string
+        accountNumber:
+          type: string
+        accountName:
+          type: string
+
+    AdminWithdrawal:
+      type: object
+      required: [id, userId, amount, bankName, accountNumber, accountName, status, user, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        amount:
+          type: number
+        bankName:
+          type: string
+        accountNumber:
+          type: string
+        accountName:
+          type: string
+        status:
+          type: string
+        note:
+          type: ["string", "null"]
+        user:
+          $ref: "#/components/schemas/User"
+        createdAt:
+          type: string
+
+    WithdrawalActionInput:
+      type: object
+      properties:
+        note:
+          type: string
+
+    # --- Scoring ---
+    Score:
+      type: object
+      required: [userId, score, updatedAt]
+      properties:
+        userId:
+          type: integer
+        score:
+          type: integer
+        updatedAt:
+          type: string
+
+    ScoreInput:
+      type: object
+      required: [score]
+      properties:
+        score:
+          type: integer
+
+    # --- Daily Dues ---
+    DailyDue:
+      type: object
+      required: [id, userId, date, paid]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        date:
+          type: string
+        paid:
+          type: boolean
+        amount:
+          type: number
+
+    DailyDuesSummary:
+      type: object
+      required: [dues, totalOwed, totalPaid]
+      properties:
+        dues:
+          type: array
+          items:
+            $ref: "#/components/schemas/DailyDue"
+        totalOwed:
+          type: number
+        totalPaid:
+          type: number
+
+    DebtSummary:
+      type: object
+      required: [totalDebt, unpaidDays]
+      properties:
+        totalDebt:
+          type: number
+        unpaidDays:
+          type: integer
+
+    UserDailyDues:
+      type: object
+      required: [userId, user, dues, totalOwed, totalPaid]
+      properties:
+        userId:
+          type: integer
+        user:
+          $ref: "#/components/schemas/User"
+        dues:
+          type: array
+          items:
+            $ref: "#/components/schemas/DailyDue"
+        totalOwed:
+          type: number
+        totalPaid:
+          type: number
+
+    DailyDuesMarkInput:
+      type: object
+      required: [dates]
+      properties:
+        dates:
+          type: array
+          items:
+            type: string
+
+    # --- Documentation ---
+    Doc:
+      type: object
+      required: [id, title, content, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        linkUrl:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    DocInput:
+      type: object
+      required: [title, content]
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        linkUrl:
+          type: string
+
+    # --- Updates ---
+    Update:
+      type: object
+      required: [id, title, content, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        comments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Comment"
+        createdAt:
+          type: string
+
+    UpdateInput:
+      type: object
+      required: [title, content]
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+
+    Comment:
+      type: object
+      required: [id, content, userId, userName, createdAt]
+      properties:
+        id:
+          type: integer
+        content:
+          type: string
+        userId:
+          type: integer
+        userName:
+          type: string
+        createdAt:
+          type: string
+
+    CommentInput:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+
+    # --- Banners ---
+    Banner:
+      type: object
+      required: [id, title, content, active, intervalMinutes, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        ctaText:
+          type: ["string", "null"]
+        ctaLink:
+          type: ["string", "null"]
+        intervalMinutes:
+          type: integer
+        active:
+          type: boolean
+        createdAt:
+          type: string
+
+    BannerInput:
+      type: object
+      required: [title, content, intervalMinutes]
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        ctaText:
+          type: string
+        ctaLink:
+          type: string
+        intervalMinutes:
+          type: integer
+
+    # --- Notifications ---
+    Notification:
+      type: object
+      required: [id, userId, title, message, read, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        title:
+          type: string
+        message:
+          type: string
+        read:
+          type: boolean
+        type:
+          type: string
+        createdAt:
+          type: string
+
+    # --- Settings ---
+    Settings:
+      type: object
+      required: [dailyDueAmount, taskCreationFee, minWithdrawal, withdrawalFee, dailyDuesEnabled, promoFee]
+      properties:
+        dailyDueAmount:
+          type: number
+        taskCreationFee:
+          type: number
+        promoFee:
+          type: number
+        minWithdrawal:
+          type: number
+        withdrawalFee:
+          type: number
+        dailyDuesEnabled:
+          type: boolean
+
+    SettingsInput:
+      type: object
+      properties:
+        dailyDueAmount:
+          type: number
+        taskCreationFee:
+          type: number
+        promoFee:
+          type: number
+        minWithdrawal:
+          type: number
+        withdrawalFee:
+          type: number
+        dailyDuesEnabled:
+          type: boolean
+
+    # --- Admin Schemas ---
+    AdminUser:
+      type: object
+      required: [id, firstName, lastName, email, gender, balance, score, status, createdAt]
+      properties:
+        id:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        gender:
+          type: string
+        balance:
+          type: number
+        score:
+          type: integer
+        status:
+          type: string
+        statusReason:
+          type: ["string", "null"]
+        statusUntil:
+          type: ["string", "null"]
+        restrictions:
+          type: ["object", "null"]
+        isAdmin:
+          type: boolean
+        lastLoginAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        taskCount:
+          type: integer
+        submissionCount:
+          type: integer
+
+    AdminUserList:
+      type: object
+      required: [users, totalUsers, onlineUsers, offlineUsers]
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminUser"
+        totalUsers:
+          type: integer
+        onlineUsers:
+          type: integer
+        offlineUsers:
+          type: integer
+
+    AdminSubmission:
+      type: object
+      required: [id, taskId, userId, status, createdAt]
+      properties:
+        id:
+          type: integer
+        taskId:
+          type: integer
+        userId:
+          type: integer
+        status:
+          type: string
+        screenshots:
+          type: array
+          items:
+            type: string
+        task:
+          $ref: "#/components/schemas/Task"
+        user:
+          $ref: "#/components/schemas/User"
+        createdAt:
+          type: string
+
+    AdminStats:
+      type: object
+      required: [totalUsers, totalTasks, totalSubmissions, pendingSubmissions, totalWithdrawals, pendingWithdrawals, totalRevenue]
+      properties:
+        totalUsers:
+          type: integer
+        totalTasks:
+          type: integer
+        totalSubmissions:
+          type: integer
+        pendingSubmissions:
+          type: integer
+        totalWithdrawals:
+          type: integer
+        pendingWithdrawals:
+          type: integer
+        totalRevenue:
+          type: number
+
+    BlockInput:
+      type: object
+      required: [weeks]
+      properties:
+        weeks:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+
+    SuspendInput:
+      type: object
+      required: [days]
+      properties:
+        days:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+
+    RestrictInput:
+      type: object
+      required: [restrictions]
+      properties:
+        restrictions:
+          type: object
+          properties:
+            noWithdraw:
+              type: boolean
+            noPerformTask:
+              type: boolean
+            noLogin:
+              type: boolean
+        message:
+          type: string
+
+    CreditInput:
+      type: object
+      required: [amount]
+      properties:
+        amount:
+          type: number
+        description:
+          type: string
+
+    DeclineInput:
+      type: object
+      properties:
+        reason:
+          type: string

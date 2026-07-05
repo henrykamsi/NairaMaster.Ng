@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "NairaMaster.ng"
+version = "1.0.0"
+id = "artifacts/nairamaster"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22769
+
+[services.development]
+run = "pnpm --filter @workspace/nairamaster run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/nairamaster", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/nairamaster/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22769"
+BASE_PATH = "/"
