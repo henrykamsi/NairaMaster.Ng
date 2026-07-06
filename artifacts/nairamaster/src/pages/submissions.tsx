@@ -8,7 +8,7 @@ import { BadgeCheck, XCircle, Clock, CheckCircle2, ImagePlus, AlertCircle, Arrow
 import { cn, formatDate } from "@/lib/utils"
 import { useLocation } from "wouter"
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status }: { status: string }): React.ReactElement {
   if (status === "approved") return (
     <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
       <CheckCircle2 className="w-3 h-3" /> Approved
@@ -76,7 +76,7 @@ function SubmissionCard({ submission, onClick }: { submission: any; onClick: () 
 }
 
 function EmptyState({ type }: { type: string }) {
-  const icons: Record<string, { icon: JSX.Element; msg: string }> = {
+  const icons: Record<string, { icon: React.ReactElement; msg: string }> = {
     approved: { icon: <CheckCircle2 className="w-12 h-12 text-emerald-400 opacity-40" />, msg: "No approved submissions yet." },
     declined: { icon: <XCircle className="w-12 h-12 text-red-400 opacity-40" />, msg: "No declined submissions." },
     pending: { icon: <Clock className="w-12 h-12 text-amber-400 opacity-40" />, msg: "No pending submissions." },
@@ -99,7 +99,7 @@ export function Submissions() {
   const pending = data?.pending ?? []
   const approved = data?.approved ?? []
   const declined = data?.declined ?? []
-  const all = [...approved, ...pending, ...declined].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+  const all = [...approved, ...pending, ...declined].sort((a, b) => new Date(b.updatedAt ?? 0).getTime() - new Date(a.updatedAt ?? 0).getTime())
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">

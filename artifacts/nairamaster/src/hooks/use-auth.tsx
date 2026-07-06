@@ -1,5 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import type { User } from "@workspace/api-client-react";
+import { setAuthTokenGetter } from "@workspace/api-client-react";
+
+// Register the auth token getter ONCE at module load so every API request
+// automatically carries the Bearer token from localStorage.
+setAuthTokenGetter(() =>
+  typeof window !== "undefined" ? localStorage.getItem("nm_token") : null
+);
 
 interface AuthState {
   token: string | null;

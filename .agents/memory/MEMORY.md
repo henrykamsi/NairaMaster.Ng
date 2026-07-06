@@ -1,0 +1,3 @@
+- [API auth token fix](api-auth-token.md) — setAuthTokenGetter must be called at module load in use-auth.tsx or ALL protected API calls return 401.
+- [Admin hook signatures](admin-hook-signatures.md) — generated hooks: first arg is params, second is options; never pass options as first arg.
+- [Admin seed and DB defaults](admin-seed.md) — admin account seeded via SQL; score default changed to 30; VAPID keys hardcoded.
